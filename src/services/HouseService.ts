@@ -1,5 +1,5 @@
 import { supabase } from "../supabase-client";
-import { baseFetch } from "./baseFetch"
+import { baseFetch } from "./baseFetch";
 
 
 
