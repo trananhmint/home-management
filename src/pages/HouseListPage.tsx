@@ -15,7 +15,7 @@ export function HouseListPage() {
   const [houses, setHouses] = useState<House[]>([]);
 
   const fetchHouses = async () => {
-    const { data, error } = await houseService.getAll();
+    const { data, error } = await houseService.getAllHouseByUserId(1);
     console.log(data, error);
     setHouses(data || []);
   }
