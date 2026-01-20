@@ -1,62 +1,43 @@
-// // services/supabase/baseFetch.ts
-// import { toastError } from "@/utils/toast";
-// import { logError } from "@/utils/logger";
-
-type SupabaseResponse<T> = {
-  data: T | null;
-  error: string | null;
-};
-
-type BaseFetchOptions = {
-  showToast?: boolean;
-  successMessage?: string;
-  errorMessage?: string;
-  context?: string;
-};
-
+import type { BaseFetchOptions, SupabaseRawResponse, SupabaseResult } from "../types";
 
 export async function baseFetch<T>(
-  request: () => Promise<{
-    data: T | null;
-    error: any;
-    status?: number;
-  }>,
+  request: () => Promise<SupabaseRawResponse<T>>,
   options?: BaseFetchOptions
-): Promise<SupabaseResponse<T>> {
+): Promise<SupabaseResult<T>> {
   try {
-    const { data, error, status } = await request();
+    const res = await request();
 
-    if (error) {
-    //   logError(error, options?.context);
+    // Supabase luôn trả về error null | object
+    if (res.error) {
+      const message =
+        options?.errorMessage ??
+        res.error.message ??
+        "Đã xảy ra lỗi từ hệ thống xác thực";
 
-      if (options?.showToast !== false) {
-        // toastError(
-        //   options?.errorMessage ??
-        //     error.message ??
-        //     "Something went wrong"
-        // );
-      }
+      console.error(
+        `[Supabase Error] ${options?.context ?? "unknown"}`,
+        res.error
+      );
 
       return {
         data: null,
-        error: error.message ?? "SUPABASE_ERROR",
+        error: message,
       };
     }
 
     return {
-      data,
+      data: res.data,
       error: null,
     };
   } catch (err) {
-    // logError(err, options?.context);
-
-    if (options?.showToast !== false) {
-    //   toastError("Network error or unexpected exception");
-    }
+    console.error(
+      `[Unexpected Error] ${options?.context ?? "unknown"}`,
+      err
+    );
 
     return {
       data: null,
-      error: "UNEXPECTED_ERROR",
+      error: "Lỗi hệ thống. Vui lòng thử lại sau.",
     };
   }
 }

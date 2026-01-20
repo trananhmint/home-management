@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Home, Building2, Users, FileText, Settings, Menu, LogOut, Moon, Sun } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import { Button } from '../components/ui/button';
+import { authService } from '../services/AuthService';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -21,6 +22,10 @@ export function MainLayout({ children }: MainLayoutProps) {
     { path: '/receipts', icon: FileText, label: 'Hoá đơn' },
     { path: '/settings', icon: Settings, label: 'Cài đặt' },
   ];
+
+  const handleSignOut = async () => {
+    await authService.signOut();
+  };
 
   return (
     <div className="flex h-screen bg-background">
@@ -78,6 +83,7 @@ export function MainLayout({ children }: MainLayoutProps) {
           <Button
             variant="ghost"
             className={`w-full ${!sidebarOpen && 'px-0'} text-sidebar-foreground hover:bg-sidebar-accent justify-start`}
+            onClick={handleSignOut}
           >
             <LogOut className="h-5 w-5" />
             {sidebarOpen && <span className="ml-3">Đăng xuất</span>}

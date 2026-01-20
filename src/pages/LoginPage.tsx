@@ -5,18 +5,24 @@ import { Label } from '../components/ui/label';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { authService } from '../services/AuthService';
 
 export function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock login - in real app, validate credentials
-    localStorage.setItem('user', JSON.stringify({ email, role: 'owner' }));
-    navigate('/');
+
+    const res = await authService.signIn(email, password);
+    console.log(">>> res: ", res);
+
+    if (!res.error) {
+      navigate("/", { replace: true });
+    }
   };
+
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">

@@ -1,3 +1,8 @@
+import type {
+  AuthError,
+  PostgrestError,
+} from "@supabase/supabase-js";
+
 export interface Tenant {
   //id
   role: "TENANT" |"LESSOR";
@@ -17,6 +22,29 @@ export interface Tenant {
   //living info
   createdAt?: string;
 }
+
+export type SupabaseError = AuthError | PostgrestError | null;
+
+export type SupabaseResult<T> = {
+  data: T | null;
+  error: string | null;
+};
+export type SupabaseResponse<T> = {
+  data: T | null;
+  error: string | null;
+};
+
+export type SupabaseRawResponse<T> = {
+  data: T | null;
+  error: SupabaseError;
+};
+
+export type BaseFetchOptions = {
+  context?: string;
+  errorMessage?: string;
+  showToast?: boolean;
+};
+
 
 
 export interface Invoice {
