@@ -1,4 +1,5 @@
 import type { BaseFetchOptions, SupabaseRawResponse, SupabaseResult } from "../types";
+import { mapKeysToCamel } from "./mappingResponse";
 
 export async function baseFetch<T>(
   request: () => Promise<SupabaseRawResponse<T>>,
@@ -25,8 +26,10 @@ export async function baseFetch<T>(
       };
     }
 
+    const mappedData = res.data? mapKeysToCamel<T>(res.data) : null;
+
     return {
-      data: res.data,
+      data: mappedData,
       error: null,
     };
   } catch (err) {
