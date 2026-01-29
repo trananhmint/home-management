@@ -8,6 +8,9 @@ import { Button } from '../components/ui/button';
 import { supabase } from '../supabase-client';
 import { useEffect, useState } from 'react';
 import { userService } from '../services/UserService';
+import SignupModal from '../components/SignUpModal';
+import { dashboardService } from '../services/DashboardService';
+import type { Dashboard, SummaryHouse } from '../types';
 
 
 export function DashboardPage() {
@@ -16,53 +19,52 @@ export function DashboardPage() {
   const occupiedRooms = mockRooms.filter((r) => r.status === 'occupied').length;
   const overdueInvoices = mockInvoices.filter((inv) => inv.status === 'overdue').length;
 
-  const [users, setUsers] = useState<any[]>([]);
+  const [summaryHouse, setSummaryHouse] = useState<SummaryHouse[]>();
+  const [dashboard, setDashboard] = useState<Dashboard | null>(null);
 
-  const fetchUsers = async () => {
-    const { data, error } = await userService.getAllTenants();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
 
-    error? console.log("Lỗi tải user"): setUsers(data ?? []);
+  const fetchDashboard = async () => {
+    const { data, error } = await dashboardService.getLessorDashboard();
+    console.log(">>> Dashboard", data, error);
+    setSummaryHouse(data.houses);
+    setDashboard(data);
   }
 
-  const fetchAddUser = async () => {
-    const res = await supabase.from("users").insert(
-      { username: "example@email", role: "owner", password: "123" },
-    ).single();
-    console.log(res);
+  const handleAddLessor = async () => {
+    setIsModalOpen(true);
   }
-
-  console.log(">>> Users", users);
-
 
   useEffect(() => {
-    fetchUsers();
+    fetchDashboard();
   }, [])
 
   const stats = [
     {
       title: 'Tổng doanh thu',
-      value: formatCurrency(totalRevenue),
+      value: `${formatCurrency(dashboard?.summary.totalMonthlyRevenue || 0)} / ${formatCurrency(dashboard?.summary.totalExpectedMonthlyRevenue || 0)}`,
       icon: DollarSign,
       description: 'Doanh thu tháng này',
       className: 'bg-green-600/10 text-green-600',
     },
     {
       title: 'Tổng nhà trọ',
-      value: mockHouses.length,
+      value: dashboard?.summary.totalHouses || 0,
       icon: Building2,
-      description: `${totalRooms} phòng`,
+      description: `${dashboard?.summary.totalHouses} phòng`,
       className: 'bg-blue-600/10 text-blue-600',
     },
     {
       title: 'Phòng đang thuê',
-      value: `${occupiedRooms}/${totalRooms}`,
+      value: `${dashboard?.summary.occupiedRooms} / ${dashboard?.summary.totalRooms}`,
       icon: DoorOpen,
-      description: `${((occupiedRooms / totalRooms) * 100).toFixed(0)}% công suất`,
+      description: `${((dashboard?.summary.occupiedRooms/dashboard?.summary.totalRooms) * 100).toFixed(0)}% công suất`,
       className: 'bg-purple-600/10 text-purple-600',
     },
     {
       title: 'Hoá đơn quá hạn',
-      value: overdueInvoices,
+      value: `${dashboard?.summary.unpaidInvoicesThisMonth} / ${dashboard?.summary.totalInvoicesThisMonth}`,
       icon: AlertCircle,
       description: 'Cần xử lý',
       className: 'bg-red-600/10 text-red-600',
@@ -71,13 +73,14 @@ export function DashboardPage() {
 
   return (
     <div className="p-8 space-y-8">
+      <SignupModal open={isModalOpen} onClose={() => setIsModalOpen(false)} />
       <div>
         <h1 className="text-3xl font-medium mb-2">Tổng quan</h1>
         <p className="text-muted-foreground">
           Thống kê và tổng quan hệ thống quản lý nhà trọ
         </p>
       </div>
-      <Button onClick={fetchAddUser}>Thêm user</Button>
+      <Button onClick={handleAddLessor}>Thêm Lessor</Button>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -115,7 +118,7 @@ export function DashboardPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {mockHouses.map((house) => (
+            {summaryHouse?.map((house) => (
               <Link
                 key={house.id}
                 to={`/houses/${house.id}`}
@@ -127,10 +130,10 @@ export function DashboardPage() {
                 </div>
                 <div className="text-right space-y-1">
                   <div className="text-lg font-medium">
-                    {formatCurrency(house.monthlyRevenue)}
+                    {formatCurrency(house.actualMonthlyRevenue)} / {formatCurrency(house.expectedMonthlyRevenue)} 
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {house.occupiedRooms}/{house.totalRooms} phòng
+                    {house.occupiedRooms} / {house.totalRooms} phòng
                   </div>
                 </div>
               </Link>
