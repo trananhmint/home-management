@@ -1,11 +1,50 @@
-import type {
-  AuthError,
-  PostgrestError,
-} from "@supabase/supabase-js";
+import type { AuthError, PostgrestError, Session } from "@supabase/supabase-js";
+
+export type AuthContextType = {
+  session: Session | null;
+  loading: boolean;
+};
+
+export type Dashboard {
+  house: SummaryHouse[];
+  summary: {
+    occupiedRooms: number | 0,
+    totalExpectedMonthlyRevenue: number | 0,
+    totalHouses: number | 0,
+    totalInvoicesThisMonth: number | 0,
+    totalMonthlyRevenue: number | 0,
+    totalRooms: number | 0,
+    unpaidInvoicesThisMonth: number | 0,
+  }
+};
+
+export interface Profile {
+  id: number;
+  email: string;
+  fullName: string;
+  // taxNo?: string;
+  gender: boolean;
+  dateOfBirth?: Date;
+  dateOfIssue?: Date;
+  identityNo?: string;
+  permanentAddress?: string;
+  phone?: string;
+  role: "LESSOR" | "TENANT";
+};
+
+export type SummaryHouse = {
+  id: number;
+  name: string;
+  address: string;
+  totalRooms: number;
+  occupiedRooms: number;
+  expectedMonthlyRevenue: number;
+  actualMonthlyRevenue: number;
+}
 
 export interface Tenant {
   //id
-  role: "TENANT" |"LESSOR";
+  role: "TENANT" | "LESSOR";
   id: number;
   identityNo: number;
   fullName: string;
@@ -21,7 +60,7 @@ export interface Tenant {
   permanentAddress?: string;
   //living info
   createdAt?: string;
-}
+};
 
 export type SupabaseError = AuthError | PostgrestError | null;
 
@@ -45,28 +84,30 @@ export type BaseFetchOptions = {
   showToast?: boolean;
 };
 
-
-
 export interface Invoice {
   //invoice
   id: number;
-  roomId: number;
   term: string; // YYYY-MM format
-  //expenses
-  rent: number;
-  electricity: number;
-  water: number;
-  internet: number;
-  garbage: number;
-  management: number;
-  otherFees: number;
+  paymentStatus: "PAID" | "UNPAID" | "OVERDUE";
+
+  roomId: number;
+  roomName: string;
+
+  houseId: number;
+  houseName: string;
   //payment
-  total: number;
+  // total: number;
   paidAmount: number;
-  status: 'paid' | 'partial' | 'unpaid' | 'overdue';
   // dueDate: string;
   paidDate?: string;
   createdAt: string;
+}
+
+export type Pagination = {
+  page: number;
+  limit: number;
+  total: number;
+  data: Invoice[] | Room[] | Tenant[] | House[];
 }
 
 export interface Room {
@@ -93,5 +134,5 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'owner' | 'manager';
+  role: "owner" | "manager";
 }

@@ -13,3 +13,7 @@ export const formatMonth = (month: string): string => {
   const [year, monthNum] = month.split('-');
   return `Tháng ${monthNum}/${year}`;
 };
+export const formatTerm = (date: string): string => {
+  const [year, month, day] = date.split('-');
+  return `${month}/${year}`;
+};
