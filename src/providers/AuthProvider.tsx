@@ -1,12 +1,10 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { authService } from "../services/AuthService";
+import type { AuthContextType } from "../types";
 
 
-type AuthContextType = {
-  session: Session | null;
-  loading: boolean;
-};
+
 
 const AuthContext = createContext<AuthContextType>({
   session: null,
@@ -18,13 +16,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. lấy session ban đầu
     authService.getSession().then((res) => {
+      
       setSession(res.data?.session ?? null);
       setLoading(false);
     });
 
-    // 2. lắng nghe auth change
     const { unsubscribe } = authService.onAuthStateChange(
       (_event, session) => {
         setSession(session);
