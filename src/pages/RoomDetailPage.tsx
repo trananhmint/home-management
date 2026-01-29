@@ -6,13 +6,13 @@ import { ArrowLeft, User, Phone, DoorOpen } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { StatusBadge } from '../components/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { formatCurrency, formatDate, formatMonth } from '../utils/format';
-import { mockHouses, mockInvoices, mockRooms, mockTenants } from '../data/mockData';
+import { formatCurrency, formatDate, formatMonth, formatTerm } from '../utils/format';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { roomService } from '../services/RoomService';
 import { useEffect, useState } from 'react';
-import type { Room } from '../types';
+import type { Invoice, Room } from '../types';
 import { userService } from '../services/UserService';
+import { getInvoiceService } from '../services/InvoiceService';
 
 export function RoomDetailPage() {
   // const { roomId } = useParams<{ roomId: string }>() || 1;
@@ -22,17 +22,15 @@ export function RoomDetailPage() {
   const [roomDetail, setRoomDetail] = useState<Room>(null!);
   const [tenant, setTenant] = useState<any>(null);
 
-  // const tenant = room?.currentTenantId ? mockTenants.find((t) => t.id === room.currentTenantId) : null;
-  // const invoices = mockInvoices.filter((inv) => inv.roomId === roomId).sort((a, b) => b.month.localeCompare(a.month));
-  // const house = room ? mockHouses.find((h) => h.id === room.houseId) : null;
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
 
-  // if (!roomDetail) {
-  //   return (
-  //     <div className="p-8">
-  //       <p>Không tìm thấy phòng</p>
-  //     </div>
-  //   );
-  // }
+  const fetchInvoicesByRoomId = async () => {
+    const { data, error } = await getInvoiceService.getAllInvoicesByRoomId(Number(roomId));
+    console.log("Invoice data:", data, error);
+    if (data && data.length > 0) {
+      setInvoices(data);
+    }
+  }
 
   const fetchRoomById = async () => {
     const { data, error } = await roomService.getRoomById(Number(houseId));
@@ -50,8 +48,17 @@ export function RoomDetailPage() {
 
   useEffect(() => {
     fetchRoomById();
+    fetchInvoicesByRoomId();
     fetchTenantByRoomId();
   }, []);
+
+  if (!roomDetail) {
+    return (
+      <div className="p-8">
+        <p>Không tìm thấy phòng</p>
+      </div>
+    );
+  }
 
   return roomDetail ? (
     <div className="p-8 space-y-8">
@@ -65,7 +72,7 @@ export function RoomDetailPage() {
           <h1 className="text-3xl font-medium mb-2">{roomDetail.name}</h1>
           {/* <p className="text-muted-foreground">{house?.name}</p> */}
         </div>
-        <StatusBadge status={roomDetail.isOccupied ? 'occupied' : 'vacant'} />
+        <StatusBadge status={roomDetail.isOccupied ? 'OCCUPIED' : 'VACANT'} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -81,7 +88,7 @@ export function RoomDetailPage() {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Trạng thái</span>
-              <StatusBadge status={roomDetail.isOccupied ? 'occupied' : 'vacant'} />
+              <StatusBadge status={roomDetail.isOccupied ? 'OCCUPIED' : 'VACANT'} />
             </div>
           </CardContent>
         </Card>
@@ -89,7 +96,7 @@ export function RoomDetailPage() {
         {/* Tenant Info */}
         <Card>
           <CardHeader>
-            <CardTitle>Thông tin khách thuê</CardTitle>
+            <CardTitle>Thông tin người thuê</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {tenant ? (
@@ -133,35 +140,35 @@ export function RoomDetailPage() {
         <CardHeader>
           <CardTitle>Lịch sử hoá đơn</CardTitle>
         </CardHeader>
-        {/* <CardContent>
+        <CardContent>
           {invoices.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Tháng</TableHead>
-                  <TableHead>Tiền thuê</TableHead>
+                  <TableHead>Kỳ hạn</TableHead>
+                  {/* <TableHead>Tiền thuê</TableHead>
                   <TableHead>Điện</TableHead>
                   <TableHead>Nước</TableHead>
-                  <TableHead>Khác</TableHead>
+                  <TableHead>Khác</TableHead> */}
                   <TableHead>Tổng cộng</TableHead>
-                  <TableHead>Đã trả</TableHead>
+                  {/* <TableHead>Đã trả</TableHead> */}
                   <TableHead>Trạng thái</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {invoices.map((invoice) => (
                   <TableRow key={invoice.id}>
-                    <TableCell className="font-medium">{formatMonth(invoice.month)}</TableCell>
-                    <TableCell>{formatCurrency(invoice.rent)}</TableCell>
-                    <TableCell>{formatCurrency(invoice.electricity)}</TableCell>
+                    <TableCell className="font-medium">{formatTerm(invoice.term)}</TableCell>
+                    {/* <TableCell>{formatCurrency(invoice.paidAmount)}</TableCell> */}
+                    {/* <TableCell>{formatCurrency(invoice.electricity)}</TableCell>
                     <TableCell>{formatCurrency(invoice.water)}</TableCell>
                     <TableCell>
                       {formatCurrency(invoice.internet + invoice.garbage + invoice.management)}
-                    </TableCell>
-                    <TableCell className="font-medium">{formatCurrency(invoice.total)}</TableCell>
+                    </TableCell> */}
+                    {/* <TableCell className="font-medium">{formatCurrency(invoice.total)}</TableCell> */}
                     <TableCell>{formatCurrency(invoice.paidAmount)}</TableCell>
-                    <TableCell>
-                      <StatusBadge status={invoice.status} />
+                    <TableCell className=''>
+                      <StatusBadge status={invoice.paymentStatus} />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -172,7 +179,7 @@ export function RoomDetailPage() {
               <p>Chưa có hoá đơn nào</p>
             </div>
           )}
-        </CardContent> */}
+        </CardContent>
       </Card>
     </div>
   ) :
