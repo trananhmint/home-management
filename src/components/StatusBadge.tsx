@@ -2,23 +2,23 @@ import { Badge } from "./ui/badge";
 
 
 interface StatusBadgeProps {
-  status: 'paid' | 'partial' | 'unpaid' | 'overdue' | 'occupied' | 'vacant';
+  status: 'PAID' | 'PARTIAL' | 'UNPAID' | 'OVERDUE' | 'OCCUPIED' | 'VACANT';
 }
 
 export function StatusBadge({ status }: StatusBadgeProps) {
   const getStatusInfo = () => {
     switch (status) {
-      case 'paid':
+      case 'PAID':
         return { label: 'Đã thanh toán', variant: 'default' as const, className: 'bg-green-600 hover:bg-green-700' };
-      case 'partial':
+      case 'PARTIAL':
         return { label: 'Trả một phần', variant: 'secondary' as const, className: 'bg-yellow-600 hover:bg-yellow-700 text-white' };
-      case 'unpaid':
+      case 'UNPAID':
         return { label: 'Chưa thanh toán', variant: 'outline' as const };
-      case 'overdue':
+      case 'OVERDUE':
         return { label: 'Quá hạn', variant: 'destructive' as const };
-      case 'occupied':
+      case 'OCCUPIED':
         return { label: 'Đang thuê', variant: 'default' as const, className: 'bg-blue-600 hover:bg-blue-700' };
-      case 'vacant':
+      case 'VACANT':
         return { label: 'Trống', variant: 'outline' as const };
       default:
         return { label: status, variant: 'outline' as const };
