@@ -5,7 +5,7 @@ export const roomService = {
   getRoomsByHouseId(houseId: number) {
     return baseFetch(
       async () => {
-        return await supabase.from("rooms").select("*").eq("houseId", houseId);
+        return await supabase.from("rooms").select("*").eq("house_id", houseId);
       },
       {
         context: "roomService.getRoomsByHouseId",

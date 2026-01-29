@@ -20,7 +20,7 @@ export const getInvoiceService = {
   getAllInvoicesByRoomId(roomId: number) {
     return baseFetch(
       async () => {
-        return await supabase.from("invoices").select("*").eq("roomId", roomId);
+        return await supabase.from("invoices").select("*").eq("room_id", roomId);
       },
       {
         context: "invoiceService.getAllInvoicesByRoomId",
