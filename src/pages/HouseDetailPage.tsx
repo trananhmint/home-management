@@ -6,11 +6,33 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { formatCurrency } from '../utils/format';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { StatusBadge } from '../components/StatusBadge';
+import { houseService } from '../services/HouseService';
+import type { House, Room } from '../types';
+import { use, useEffect, useState } from 'react';
 
 export function HouseDetailPage() {
   const { houseId } = useParams<{ houseId: string }>();
-  const house = mockHouses.find((h) => h.id === houseId);
-  const rooms = mockRooms.filter((r) => r.houseId === houseId);
+  const [revenue, setRevenue] = useState({
+    expectMonthlyRevenue: 0,
+    monthlyRevenue: 0,
+  });
+  const [house, setHouse] = useState<House | null>(null);
+  const [rooms, setRooms] = useState<Room[]>([]);
+
+
+  const fetchHouseDetails = async () => {
+    const { data, error } = await houseService.getHouseById(Number(houseId));
+    console.log("House data:", data, error);
+    setRevenue({
+      expectMonthlyRevenue: data.expectedMonthlyRevenue ?? 0,
+      monthlyRevenue: data.monthlyRevenue ?? 0,
+    });
+    setHouse(data.house!);
+    setRooms(data.rooms!);
+  };
+  useEffect(() => {
+    fetchHouseDetails();
+  }, []);
 
   if (!house) {
     return (
@@ -19,6 +41,8 @@ export function HouseDetailPage() {
       </div>
     );
   }
+
+
 
   const getRoomPaymentStatus = (roomId: string) => {
     const latestInvoice = mockInvoices
@@ -67,10 +91,19 @@ export function HouseDetailPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-medium">{formatCurrency(house.monthlyRevenue)}</div>
+            <div className="text-2xl font-medium">{formatCurrency(revenue.monthlyRevenue)} / {formatCurrency(revenue.expectMonthlyRevenue)}</div>
           </CardContent>
         </Card>
-
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Tổng số phòng
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-medium text-yellow-600">{rooms.length} phòng</div>
+          </CardContent>
+        </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -82,16 +115,7 @@ export function HouseDetailPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Trả một phần
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-medium text-yellow-600">{partialRooms} phòng</div>
-          </CardContent>
-        </Card>
+
 
         <Card>
           <CardHeader className="pb-2">
@@ -135,7 +159,7 @@ export function HouseDetailPage() {
                     <StatusBadge status={room.status} />
                   </TableCell>
                   <TableCell>{getTenantName(room.id)}</TableCell>
-                  <TableCell>{formatCurrency(room.monthlyRent)}</TableCell>
+                  <TableCell>{formatCurrency(room.price)}</TableCell>
                   <TableCell>
                     {room.status === 'occupied' && (
                       <StatusBadge status={getRoomPaymentStatus(room.id)} />

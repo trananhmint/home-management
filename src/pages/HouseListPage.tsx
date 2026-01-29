@@ -2,21 +2,22 @@
 import { Link } from 'react-router-dom';
 import { Building2, MapPin } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import { mockHouses } from '../data/mockData';
 import { Card, CardContent } from '../components/ui/card';
 import { formatCurrency } from '../utils/format';
 import { houseService } from '../services/HouseService';
 import { useEffect, useState } from 'react';
 import type { House } from '../types';
+import { useUser } from '../providers/UserProvider';
 
 
 export function HouseListPage() {
+  const { user } = useUser();
 
   const [houses, setHouses] = useState<House[]>([]);
 
   const fetchHouses = async () => {
-    const { data, error } = await houseService.getAllHouseByUserId(1);
-    console.log(data, error);
+    const { data, error } = await houseService.getAllHouseByUserId(3);
+    console.log(">>> Houses", data, error);
     setHouses(data || []);
   }
 
@@ -40,7 +41,7 @@ export function HouseListPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {mockHouses.map((house) => (
+        {houses.map((house) => (
           <Link key={house.id} to={`/houses/${house.id}`}>
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">
               <CardContent className="p-6 space-y-4">
@@ -62,22 +63,22 @@ export function HouseListPage() {
                 <div className="pt-4 border-t border-border space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Doanh thu/tháng</span>
-                    <span className="font-medium">{formatCurrency(house.monthlyRevenue)}</span>
+                    <span className="font-medium">{formatCurrency(house.monthlyRevenue ?? 0)}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Tổng phòng</span>
-                    <span className="font-medium">{house.totalRooms} phòng</span>
+                    <span className="font-medium">{house.totalRooms ?? 0} phòng</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Đang thuê</span>
                     <span className="font-medium text-green-600">
-                      {house.occupiedRooms}/{house.totalRooms}
+                      {house.occupiedRooms ?? 0}/{house.totalRooms ?? 0}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Công suất</span>
                     <span className="font-medium">
-                      {((house.occupiedRooms / house.totalRooms) * 100).toFixed(0)}%
+                      {((house.occupiedRooms  / house.totalRooms) * 100).toFixed(0) ?? 0} %
                     </span>
                   </div>
                 </div>
