@@ -9,7 +9,6 @@ import { TenantsPage } from './pages/TenantsPage';
 import { ReceiptsPage } from './pages/ReceiptsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { AuthProvider, useAuth } from './providers/AuthProvider';
-import { User } from 'lucide-react';
 import { UserProvider } from './providers/UserProvider';
 
 
