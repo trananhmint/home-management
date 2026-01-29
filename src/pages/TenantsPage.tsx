@@ -1,15 +1,36 @@
 
-import { User, Phone, MapPin, UserPlus } from 'lucide-react';
+import { User, Phone, MapPin, UserPlus, Cake, IdCard, House, Calendar } from 'lucide-react';
 
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { mockHouses, mockRooms, mockTenants } from '../data/mockData';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { formatDate } from '../utils/format';
 import { userService } from '../services/UserService';
+import { useAuth } from '../providers/AuthProvider';
+import { useUser } from '../providers/UserProvider';
+import { Link } from 'react-router-dom';
+
+export const TENANT_DETAIL_SCHEMA = [
+  {
+    key: "gender",
+    label: "Giới tính",
+    icon: User,
+    format: (value: boolean) => (value ? "Nam" : "Nữ"),
+  },
+  {
+    key: "phone",
+    label: "SĐT",
+    icon: Phone,
+  },
+] as const
 
 export function TenantsPage() {
+  const { user } = useUser();
+
+  console.log("session user Id: ", user?.id);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [tenants, setTenants] = useState<any>([]);
 
@@ -27,16 +48,16 @@ export function TenantsPage() {
 
 
   const fetchGetTenants = async () => {
-    const { data, error } = await userService.getAllTenants();
+    const { data, error } = await userService.getAllTenants(user?.id);
     console.log(">>> Tenants", data);
 
-    error? console.log("Lỗi tải tenants"): setTenants(data ?? []);
-  } 
+    error ? console.log("Lỗi tải tenants") : setTenants(data ?? []);
+  }
 
   useEffect(() => {
     fetchGetTenants();
-  }, [])  
-  
+  }, [])
+
   return (
     <div className="p-8 space-y-8">
       <div className="flex items-center justify-between">
@@ -77,19 +98,44 @@ export function TenantsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <span>{tenant.phone || "N/A"}</span>
+                <div className="space-y-2">
+                  {/* Identity */}
+
+                  {TENANT_DETAIL_SCHEMA.map((item) => {
+                    const Icon = item.icon
+                    const rawValue = tenant[item.key]
+
+                    return (
+                      <div
+                        key={item.key}
+                        className="flex border-b py-2 text-sm"
+                      >
+                        <div className="w-[30%] flex items-center gap-2 text-muted-foreground">
+                          <Icon className="h-4 w-4" />
+                          <span>{item.label}</span>
+                        </div>
+
+                        <div className="w-[70%] font-medium">
+                          {item?.format
+                            ? item?.format(rawValue)
+                            : rawValue ?? "N/A"}
+                        </div>
+                      </div>
+                    )
+                  })}
+
+
                 </div>
-                
-                {roomInfo && (
+
+
+                {tenant.roomId && (
                   <div className="pt-3 border-t border-border space-y-2">
                     <div className="flex items-start gap-2 text-sm">
                       <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
                       <div>
-                        <div className="font-medium">{roomInfo.room.name}</div>
+                        <div className="font-medium">{tenant.roomName}</div>
                         <div className="text-muted-foreground text-xs">
-                          {roomInfo.house?.name}
+                          {tenant.houseName}
                         </div>
                       </div>
                     </div>
@@ -100,10 +146,11 @@ export function TenantsPage() {
                     )}
                   </div>
                 )}
-
-                <Button variant="outline" className="w-full mt-4">
-                  Xem chi tiết
-                </Button>
+                <Link key={tenant.id} to={`/tenants/${tenant.id}`}>
+                  <Button variant="outline" className="w-full mt-4" onClick={() => { }}>
+                    Xem chi tiết
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           );
